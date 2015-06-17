@@ -1,7 +1,16 @@
 Blosc filter for HDF5
 =====================
 
-This is an example of filter for HDF5 that uses Blosc.
+:Travis CI: |travis|
+:And...: |powered|
+
+.. |travis| image:: https://travis-ci.org/Blosc/hdf5.png?branch=master
+        :target: https://travis-ci.org/Blosc/hdf5
+
+.. |powered| image:: http://b.repl.ca/v1/Powered--By-Blosc-blue.png
+        :target: https://blosc.org
+
+This is an example of filter for HDF5 that uses the Blosc compressor.
 
 You need to be a bit careful before using this filter because you
 should not activate the shuffle right in HDF5, but rather from Blosc
@@ -22,5 +31,3 @@ See THANKS.rst.
 ----
 
   **Enjoy data!**
-
-
