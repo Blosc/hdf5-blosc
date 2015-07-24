@@ -54,7 +54,7 @@ installed to work.
 As an HDF5 plugin
 =================
 
-Also, you can use blosc as an HDF5 plugin; see 'src/blosc_pluing.c' for
+Also, you can use blosc as an HDF5 plugin; see 'src/blosc_plugin.c' for
 details.
 
 
