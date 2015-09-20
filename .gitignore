@@ -30,3 +30,7 @@
 
 # Debug files
 *.dSYM/
+
+# Anything in the 'build' folder.
+build/
+

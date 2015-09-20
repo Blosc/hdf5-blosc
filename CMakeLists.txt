@@ -44,11 +44,11 @@ include_directories(${HDF5_INCLUDE_DIRS})
 
 # add blosc libraries
 add_library(blosc_shared SHARED IMPORTED)
-set_property(TARGET blosc_shared PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/libblosc.so)
+set_property(TARGET blosc_shared PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}blosc${CMAKE_SHARED_LIBRARY_SUFFIX})
 add_dependencies(blosc_shared project_blosc)
 include_directories(${BLOSC_INSTALL_DIR}/include)
 
-add_library(blosc_filter_shared ${SOURCES})
+add_library(blosc_filter_shared SHARED ${SOURCES})
 set_target_properties(
   blosc_filter_shared PROPERTIES OUTPUT_NAME blosc_filter)
 target_link_libraries(blosc_filter_shared blosc_shared ${HDF5_LIBRARIES})
