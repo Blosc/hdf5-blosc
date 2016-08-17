@@ -194,11 +194,6 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     /* We're compressing */
     if(!(flags & H5Z_FLAG_REVERSE)){
 
-#ifdef BLOSC_DEBUG
-        fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n",
-		nbytes, outbuf_size);
-#endif
-
         /* Allocate an output buffer exactly as long as the input data; if
            the result is larger, we simply return 0.  The filter is flagged
            as optional, so HDF5 marks the chunk as uncompressed and
@@ -206,6 +201,12 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         */
 
         outbuf_size = (*buf_size);
+
+#ifdef BLOSC_DEBUG
+        fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n",
+		nbytes, outbuf_size);
+#endif
+
         outbuf = malloc(outbuf_size);
 
         if (outbuf == NULL){
@@ -235,10 +236,6 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         /* declare dummy variables */
         size_t cbytes, blocksize;
 
-#ifdef BLOSC_DEBUG
-        fprintf(stderr, "Blosc: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
-#endif
-
         free(outbuf);
 
         /* Extract the exact outbuf_size from the buffer header.
@@ -249,6 +246,10 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
          *  size.
          */
         blosc_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
+
+#ifdef BLOSC_DEBUG
+        fprintf(stderr, "Blosc: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
+#endif
 
         outbuf = malloc(outbuf_size);
 
