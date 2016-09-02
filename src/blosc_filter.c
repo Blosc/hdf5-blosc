@@ -171,8 +171,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
 #if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 8) )
 	if (doshuffle == BLOSC_BITSHUFFLE) {
 	  PUSH_ERR("blosc_filter", H5E_CALLBACK,
-		   "this Blosc library version does not have support for "
-		   "the bitshuffle filter.  Please update to >= 1.8");
+		   "this Blosc library version is not supported.  Please update to >= 1.8");
 	  goto failed;
 	}
 #endif
@@ -215,17 +214,9 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
             goto failed;
         }
 
-#if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
         blosc_set_compressor(compname);
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
-#else
-        /* Probably the bug affecting blosc_decompress() (see below)
-	   was not applicable to blosc_compress(), but let's err on
-	   the safe side and use blosc_compress_ctx() before 1.8.0 */
-        status = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes,
-                                    *buf, outbuf, nbytes, compname, 0, 1);
-#endif
         if (status < 0) {
           PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc compression error");
           goto failed;
@@ -258,18 +249,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
           goto failed;
         }
 
-#if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
-	status = blosc_decompress(*buf, outbuf, outbuf_size);
-#else
-        /* From Blosc 1.5 to 1.8, there was a bug consiting in not
-	   holding not an internal global lock anymore during
-	   blosc_decompress(), creating problems when multiple
-	   instances of Blosc were launched, so do not try to run in
-	   multithreading mode so as to not interfering with other
-	   possible threads launched by the main Python application */
-        status = blosc_decompress_ctx(*buf, outbuf, outbuf_size, 1);
-#endif
-
+        status = blosc_decompress(*buf, outbuf, outbuf_size);
         if(status <= 0){    /* decompression failed */
           PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc decompression error");
           goto failed;
