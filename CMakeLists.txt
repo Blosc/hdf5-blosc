@@ -8,6 +8,10 @@ option(BUILD_TESTS
 
 option(BUILD_PLUGIN
     "Build dynamically loadable plugin for HDF5 version > 1.8.11" ON)
+if(BUILD_PLUGIN)
+    set(PLUGIN_INSTALL_PATH "/usr/local/hdf5/lib/plugin" CACHE PATH 
+      "Where to install the dynamic HDF5-plugin")
+endif(BUILD_PLUGIN)
 
 set(BLOSC_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/blosc")
 set(BLOSC_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/blosc")
@@ -62,6 +66,8 @@ if(BUILD_PLUGIN)
     set_target_properties(
       blosc_plugin_shared PROPERTIES OUTPUT_NAME H5Zblosc)
     target_link_libraries(blosc_plugin_shared blosc_shared ${HDF5_LIBRARIES})
+
+    install(TARGETS blosc_plugin_shared DESTINATION ${PLUGIN_INSTALL_PATH} COMPONENT HDF5_FILTER_DEV)
 endif(BUILD_PLUGIN)
 
 # install
