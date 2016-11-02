@@ -15,7 +15,7 @@ message("BLOSC_INSTALL_DIR='${BLOSC_INSTALL_DIR}'")
 message("BLOSC_CMAKE_ARGS='${BLOSC_CMAKE_ARGS}'")
 message("GIT_EXECUTABLE='${GIT_EXECUTABLE}'")
 
-ExternalProject_Add(blosc
+ExternalProject_Add(project_blosc
   PREFIX ${BLOSC_PREFIX}
   GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
   INSTALL_DIR ${BLOSC_INSTALL_DIR}
