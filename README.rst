@@ -29,7 +29,7 @@ it as a system-wide HDF5 plugin (with HDF5 1.8.11 or later).  This is useful bec
 As described in the `HDF5 plugin documentation <https://www.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf>`_, you just need to compile the Blosc plugin into a shared library and
 copy it to the plugin directory (which defaults to ``/usr/local/hdf5/lib/plugin`` on non-Windows systems).
 
-Following the ``cmake`` instructions below produces a ``blosc_plugin.so`` shared library 
+Following the ``cmake`` instructions below produces a ``libH5Zblosc.so`` shared library 
 file (or ``.dylib``/``.dll`` on Mac/Windows), that you can copy to the HDF5 plugin directory.
 
 To *write* Blosc-compressed HDF5 files, on the other hand, an HDF5 using program must be
