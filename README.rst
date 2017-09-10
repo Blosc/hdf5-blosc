@@ -5,8 +5,8 @@ Blosc filter for HDF5
 :Travis CI: |travis|
 :And...: |powered|
 
-.. |travis| image:: https://travis-ci.org/Blosc/hdf5.png?branch=master
-        :target: https://travis-ci.org/Blosc/hdf5
+.. |travis| image:: https://travis-ci.org/Blosc/hdf5-blosc.png?branch=master
+        :target: https://travis-ci.org/Blosc/hdf5-blosc
 
 .. |powered| image:: http://b.repl.ca/v1/Powered--By-Blosc-blue.png
         :target: https://blosc.org
