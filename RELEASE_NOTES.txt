@@ -1,6 +1,6 @@
-===========================
+==============================
  Release notes for HDF5-Blosc
-===========================
+==============================
 
 :Author: Francesc Alted
 :Contact: francesc@blosc.org
