@@ -206,7 +206,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     nbytes, outbuf_size);
 #endif
 
-    outbuf = H5allocate_memory(outbuf_size, false);
+    outbuf = H5allocate_memory(outbuf_size, 0);
 
     if (outbuf == NULL) {
       PUSH_ERR("blosc_filter", H5E_CALLBACK,
@@ -240,7 +240,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     fprintf(stderr, "Blosc: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
 #endif
 
-    outbuf = H5allocate_memory(outbuf_size, false);
+    outbuf = H5allocate_memory(outbuf_size, 0);
 
     if (outbuf == NULL) {
       PUSH_ERR("blosc_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
