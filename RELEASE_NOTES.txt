@@ -6,6 +6,10 @@
 :Contact: francesc@blosc.org
 :URL: http://www.blosc.org
 
+Changes from 1.0.0 to 1.1.0
+===========================
+- Use H5allocate_memory() and H5free_memory() rather than malloc() and free().
+- Simplified blosc_plugin.c, removed blosc_plugin.h.
 
 Changes from 0.0.1 to 1.0.0
 ===========================
