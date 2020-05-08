@@ -197,10 +197,15 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     /* Allocate an output buffer exactly as long as the input data; if
        the result is larger, we simply return 0.  The filter is flagged
        as optional, so HDF5 marks the chunk as uncompressed and
-       proceeds.
+       proceeds. Exit early if the blosc header doesn't fit, it is
+       forbidden to call blosc_compress with a smaller output buffer.
     */
 
     outbuf_size = (*buf_size);
+
+    if (outbuf_size < BLOSC_MAX_OVERHEAD) {
+      return 0;
+    }
 
 #ifdef BLOSC_DEBUG
     fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n",
