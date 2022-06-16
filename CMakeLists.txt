@@ -9,7 +9,7 @@ option(BUILD_TESTS
 option(BUILD_PLUGIN
     "Build dynamically loadable plugin for HDF5 version > 1.8.11" ON)
 if(BUILD_PLUGIN)
-    set(PLUGIN_INSTALL_PATH "/usr/local/hdf5/lib/plugin" CACHE PATH 
+    set(PLUGIN_INSTALL_PATH "/usr/local/hdf5/lib/plugin" CACHE PATH
       "Where to install the dynamic HDF5-plugin")
 endif(BUILD_PLUGIN)
 
@@ -25,6 +25,7 @@ message("GIT_EXECUTABLE='${GIT_EXECUTABLE}'")
 ExternalProject_Add(project_blosc
   PREFIX ${BLOSC_PREFIX}
   GIT_REPOSITORY https://github.com/Blosc/c-blosc.git
+  GIT_TAG main
   INSTALL_DIR ${BLOSC_INSTALL_DIR}
   CMAKE_ARGS ${BLOSC_CMAKE_ARGS}
 )
