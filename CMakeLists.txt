@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.10)
 cmake_policy(SET CMP0074 NEW)
 project(blosc_hdf5)
 include(ExternalProject)
+include(GNUInstallDirs)
 
 # options
 option(BUILD_TESTS
@@ -54,7 +55,7 @@ include_directories(${HDF5_INCLUDE_DIRS})
 
 # add blosc libraries
 add_library(blosc_shared SHARED IMPORTED)
-set_property(TARGET blosc_shared PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}blosc${CMAKE_SHARED_LIBRARY_SUFFIX})
+set_property(TARGET blosc_shared PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}blosc${CMAKE_SHARED_LIBRARY_SUFFIX})
 add_dependencies(blosc_shared project_blosc)
 include_directories(${BLOSC_INSTALL_DIR}/include)
 
