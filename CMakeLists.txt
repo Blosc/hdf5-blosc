@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.10)
+cmake_minimum_required(VERSION 3.5.0)
 cmake_policy(SET CMP0074 NEW)
 project(blosc_hdf5)
 include(ExternalProject)

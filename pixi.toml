@@ -1,0 +1,17 @@
+[workspace]
+channels = ["conda-forge"]
+name = "hdf5-blosc"
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+compilers = "*"
+cmake = "*"
+hdf5 = "*"
+
+[tasks]
+clean = "rm -rf build"
+mkdir-build = { cmd = "mkdir -p build" }
+build-thirdparty = { cwd = "build", cmd = "cmake .." }
+build-hdf5-blosc = { cwd = "build", cmd = "cmake --build . --config Release" }
+build = { depends-on = [ "mkdir-build", "build-thirdparty", "build-hdf5-blosc" ] }
+test = { cwd = "build", cmd = "ctest --output-on-failure" }

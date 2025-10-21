@@ -2,11 +2,11 @@
 Blosc filter for HDF5
 =====================
 
-:Travis CI: |travis|
+:CI: |ci|
 :And...: |powered|
 
-.. |travis| image:: https://travis-ci.org/Blosc/hdf5-blosc.png?branch=master
-        :target: https://travis-ci.org/Blosc/hdf5-blosc
+.. |test| image:: https://github.com/Blosc/hdf5-blosc/actions/workflows/test.yml/badge.svg?branch=master
+    :target: https://github.com/Blosc/hdf5-blosc/actions/workflows/test.yml
 
 .. |powered| image:: http://b.repl.ca/v1/Powered--By-Blosc-blue.png
         :target: https://blosc.org
