@@ -27,23 +27,25 @@ jobs:
         os:
           - ubuntu-latest # x86-64
           - ubuntu-24.04-arm # ARM
-          # FIXME linker error `Library not loaded: @rpath/libblosc.1.dylib`
-          # - macos-15-intel # x86-64
-          # - macos-latest # ARM
-          # FIXME compiler error `Cannot open include file: 'hdf5.h'`
-          # - windows-latest  # x86-64
+          - macos-15-intel # x86-64
+          - macos-latest # ARM
+          - windows-latest  # x86-64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: prefix-dev/setup-pixi@v0.8.10
+      - uses: prefix-dev/setup-pixi@v0
         with:
-          pixi-version: v0.56.0
+          pixi-version: v0.57.0
           environments: default
 
       - name: Build
         run: pixi run build
+
+      - name: Let unit tests find blosc.dll
+        if: runner.os == 'Windows'
+        run: cp build/blosc/bin/blosc.dll build/
 
       - name: Unit tests
         run: pixi run test
