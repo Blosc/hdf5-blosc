@@ -38,24 +38,32 @@ set(SOURCES src/blosc_filter.c)
 set(PLUGIN_SOURCES src/blosc_filter.c src/blosc_plugin.c )
 
 # dependencies
-if(MSVC)
-    # FindHDF5.cmake does not find Windows installations. Try to
-    # use an environment variable instead until the official "find"
+if(MSVC AND NOT DEFINED ENV{CONDA_PREFIX})
+    # FindHDF5.cmake does not find Windows installations other than conda.
+    # Try to use an environment variable instead until the official "find"
     # file can be updated for Windows.
     #
     # Note that you have to set this environment variable by hand.
     file(TO_CMAKE_PATH "$ENV{HDF5_DIR}" HDF5_HINT)
     set(HDF5_DIR ${HDF5_HINT} CACHE STRING "Path to HDF5 CMake config directory.")
     find_package(HDF5 REQUIRED HINTS ${HDF5_DIR})
-else(MSVC)
+else(MSVC AND NOT DEFINED ENV{CONDA_PREFIX})
     find_package(HDF5 REQUIRED)
-endif(MSVC)
+endif(MSVC AND NOT DEFINED ENV{CONDA_PREFIX})
+
 include_directories(${HDF5_INCLUDE_DIRS})
 
 
 # add blosc libraries
 add_library(blosc_shared SHARED IMPORTED)
+# Needed on Linux
 set_property(TARGET blosc_shared PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}blosc${CMAKE_SHARED_LIBRARY_SUFFIX})
+# Needed on Windows. You will also need to manually copy blosc/bin/blosc.dll
+# to the folder of your executable.
+set_property(TARGET blosc_shared PROPERTY IMPORTED_IMPLIB ${BLOSC_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
+# Needed on MacOS
+set(CMAKE_BUILD_RPATH ${BLOSC_INSTALL_DIR}/lib)
+
 add_dependencies(blosc_shared project_blosc)
 include_directories(${BLOSC_INSTALL_DIR}/include)
 
