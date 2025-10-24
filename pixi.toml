@@ -11,8 +11,8 @@ hdf5 = "*"
 [activation.env]
 # CFLAGS = "-O0 -g -DBLOSC_DEBUG"
 # FIXME Debug hangs on Windows GitHub runners
-# CMAKE_CONFIG = "Debug"
-CMAKE_CONFIG = "Release"
+CMAKE_CONFIG = "Debug"
+# CMAKE_CONFIG = "Release"
 
 [tasks]
 clean = "rm -rf build"
