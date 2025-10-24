@@ -8,10 +8,16 @@ compilers = "*"
 cmake = "*"
 hdf5 = "*"
 
+[activation.env]
+# CFLAGS = "-O0 -g -DBLOSC_DEBUG"
+# FIXME Debug hangs on Windows GitHub runners
+# CMAKE_CONFIG = "Debug"
+CMAKE_CONFIG = "Release"
+
 [tasks]
 clean = "rm -rf build"
 mkdir-build = { cmd = "mkdir -p build" }
 build-thirdparty = { cwd = "build", cmd = "cmake .." }
-build-hdf5-blosc = { cwd = "build", cmd = "cmake --build . --config Release" }
+build-hdf5-blosc = { cwd = "build", cmd = "cmake --build . --config $CMAKE_CONFIG" }
 build = { depends-on = [ "mkdir-build", "build-thirdparty", "build-hdf5-blosc" ] }
-test = { cwd = "build", cmd = "ctest --output-on-failure" }
+test = { cwd = "build", cmd = "ctest --output-on-failure --build-config $CMAKE_CONFIG" }
