@@ -11,6 +11,7 @@
 */
 
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,8 +28,6 @@
    approaches for handling the trailing comma issue when possible. */
 #define PUSH_ERR(func, minor, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, __VA_ARGS__)
 #endif	/* defined(__GNUC__) */
-
-#define GET_FILTER(a, b, c, d, e, f, g) H5Pget_filter_by_id(a,b,c,d,e,f,g,NULL)
 
 
 size_t blosc_filter(unsigned flags, size_t cd_nelmts,
@@ -79,23 +78,34 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space) {
   int i;
   herr_t r;
 
-  unsigned int typesize, basetypesize;
-  unsigned int bufsize;
+  unsigned int typesize, chunksize, basetypesize;
   hsize_t chunkdims[32];
   unsigned int flags;
-  size_t nelements = 8;
-  unsigned int values[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  size_t cd_nelmts = 8;
+  /* 
+   * cd_values[0] = hdf5-blosc format version
+   * cd_values[1] = blosc format version
+   * cd_values[2] = typesize
+   * cd_values[3] = uncompressed chunk size (unused)
+   * cd_values[4] = compression level
+   * cd_values[5] = 0: shuffle not active, 1: shuffle active
+   * cd_values[6] = compressor, e.g. BLOSC_BLOSCLZ
+   * cd_values[7] = unused
+   */
+  unsigned int cd_values[] = {0, 0, 0, 0, 0, 0, 0, 0};
   hid_t super_type;
   H5T_class_t classt;
 
-  r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
+  r = H5Pget_filter_by_id(
+    dcpl, FILTER_BLOSC, &flags, &cd_nelmts, cd_values, 0, NULL, NULL
+  );
   if (r < 0) return -1;
 
-  if (nelements < 4) nelements = 4;  /* First 4 slots reserved. */
+  if (cd_nelmts < 4) cd_nelmts = 4;  /* First 4 slots reserved. */
 
   /* Set Blosc info in first two slots */
-  values[0] = FILTER_BLOSC_VERSION;
-  values[1] = BLOSC_VERSION_FORMAT;
+  cd_values[0] = FILTER_BLOSC_VERSION;
+  cd_values[1] = BLOSC_VERSION_FORMAT;
 
   ndims = H5Pget_chunk(dcpl, 32, chunkdims);
   if (ndims < 0) return -1;
@@ -108,6 +118,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space) {
   if (typesize == 0) return -1;
   /* Get the size of the base type, even for ARRAY types */
   classt = H5Tget_class(type);
+  if (classt == H5T_NO_CLASS) return -1;
   if (classt == H5T_ARRAY) {
     /* Get the array base component */
     super_type = H5Tget_super(type);
@@ -120,22 +131,25 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
   /* Limit large typesizes (they are pretty expensive to shuffle
      and, in addition, Blosc does not handle typesizes larger than
-     256 bytes). */
+     255 bytes). */
   if (basetypesize > BLOSC_MAX_TYPESIZE) basetypesize = 1;
-  values[2] = basetypesize;
+  cd_values[2] = basetypesize;
 
-  /* Get the size of the chunk */
-  bufsize = typesize;
+  /* Get the size of the chunk. This is unused by blosc_filter().
+     It is retained for backward compatibility.
+  */
+  chunksize = typesize;
   for (i = 0; i < ndims; i++) {
-    bufsize *= chunkdims[i];
+    chunksize *= chunkdims[i];
   }
-  values[3] = bufsize;
+  cd_values[3] = chunksize;
 
 #ifdef BLOSC_DEBUG
-  fprintf(stderr, "Blosc: Computed buffer size %d\n", bufsize);
+  fprintf(stderr, "Blosc: typesize=%d; chunksize=%d\n",
+          typesize, chunksize);
 #endif
 
-  r = H5Pmodify_filter(dcpl, FILTER_BLOSC, flags, nelements, values);
+  r = H5Pmodify_filter(dcpl, FILTER_BLOSC, flags, cd_nelmts, cd_values);
   if (r < 0) return -1;
 
   return 1;
@@ -159,9 +173,15 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
   const char* complist;
   char errmsg[256];
 
+  assert(cd_nelmts >= 4);
+  assert(cd_values[0] == FILTER_BLOSC_VERSION);
+  assert(cd_values[1] == BLOSC_VERSION_FORMAT);
+  assert(nbytes > 0);
+  assert(*buf_size >= nbytes);
+
   /* Filter params that are always set */
   typesize = cd_values[2];      /* The datatype size */
-  outbuf_size = cd_values[3];   /* Precomputed buffer guess */
+  assert(typesize > 0 && typesize <= BLOSC_MAX_TYPESIZE);
   /* Optional params */
   if (cd_nelmts >= 5) {
     clevel = cd_values[4];        /* The compression level */
@@ -200,14 +220,14 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
        proceeds.
     */
 
-    outbuf_size = (*buf_size);
+    outbuf_size = nbytes;
 
 #ifdef BLOSC_DEBUG
-    fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n",
-    nbytes, outbuf_size);
+    fprintf(stderr, "Blosc: Compress %zd bytes chunk (typesize=%d)\n", 
+            nbytes, typesize);
 #endif
 
-    outbuf = malloc(outbuf_size);
+    outbuf = malloc(nbytes);
 
     if (outbuf == NULL) {
       PUSH_ERR("blosc_filter", H5E_CALLBACK,
@@ -218,29 +238,32 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     blosc_set_compressor(compname);
     status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                             *buf, outbuf, nbytes);
+    if (status == 0) goto failed;  /* compressed size > input size. This is OK. */
     if (status < 0) {
+      /* Internal error */
       PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc compression error");
       goto failed;
     }
+    assert((size_t)status <= nbytes);
 
     /* We're decompressing */
   } else {
     /* declare dummy variables */
     size_t cbytes, blocksize;
 
-    free(outbuf);
-
     /* Extract the exact outbuf_size from the buffer header.
      *
-     * NOTE: the guess value got from "cd_values" corresponds to the
-     * uncompressed chunk size but it should not be used in a general
-     * cases since other filters in the pipeline can modify the buffere
-     *  size.
+     * NOTE: cd_values[3] contains the uncompressed chunk size.
+     * It should not be used in general cases since other filters in the 
+     * pipeline can modify the buffer size.
      */
     blosc_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
+    assert(cbytes == nbytes);
 
 #ifdef BLOSC_DEBUG
-    fprintf(stderr, "Blosc: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
+    fprintf(stderr,
+            "Blosc: Decompress %zd bytes compressed chunk into %zd bytes buffer\n",
+            nbytes, outbuf_size);
 #endif
 
     outbuf = malloc(outbuf_size);
@@ -254,18 +277,20 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     if (status <= 0) {    /* decompression failed */
       PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc decompression error");
       goto failed;
-    } /* if !status */
+    }
 
   } /* compressing vs decompressing */
 
-  if (status != 0) {
-    free(*buf);
-    *buf = outbuf;
-    *buf_size = outbuf_size;
-    return status;  /* Size of compressed/decompressed data */
-  }
+  assert(status > 0);
+  assert(status <= outbuf_size);
+  /* Compression successful */
+  free(*buf);
+  *buf = outbuf;
+  *buf_size = outbuf_size;
+  return status;  /* Size of compressed/decompressed data */
 
   failed:
+  /* Note: we will reach this when compressed size > original size. */
   free(outbuf);
   return 0;
 
