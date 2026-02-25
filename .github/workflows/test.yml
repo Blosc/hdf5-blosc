@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os }} - ${{ matrix.environment }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,6 +30,13 @@ jobs:
           - macos-15-intel # x86-64
           - macos-latest # ARM
           - windows-latest  # x86-64
+        environment:
+          - default
+          - upstream
+        exclude:
+          # Not supported by crusaderky/hdf5-pixi yet
+          - environment: upstream
+            os: windows-latest
 
     steps:
       - name: Checkout
@@ -37,15 +44,15 @@ jobs:
 
       - uses: prefix-dev/setup-pixi@v0
         with:
-          pixi-version: v0.57.0
-          environments: default
+          pixi-version: v0.64.0
+          environments: ${{ matrix.environment }}
 
       - name: Build
-        run: pixi run build
+        run: pixi run -e ${{ matrix.environment }} build
 
       - name: Let unit tests find blosc.dll
         if: runner.os == 'Windows'
         run: cp build/blosc/bin/blosc.dll build/
 
       - name: Unit tests
-        run: pixi run test
+        run: pixi run -e ${{ matrix.environment }} test

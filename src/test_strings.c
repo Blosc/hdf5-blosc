@@ -81,13 +81,7 @@ int main(){
     r = H5Pset_chunk(plist, NDIM, chunkshape);
     if(r<0) goto failed;
 
-    /* FIXME https://github.com/HDFGroup/hdf5/issues/5942
-       libhdf5 skips blosc_set_local() for H5T_VARIABLE data types, so you
-       *must* compile by hand cd_values[0:4], which are normally filled in
-       by blosc_set_local().
-    */
-    unsigned int cd_values[4] = {FILTER_BLOSC_VERSION, BLOSC_VERSION_FORMAT, 1, 0};
-    r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 4, cd_values);
+    r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 0, NULL);
     if(r<0) goto failed;
 
     /* Define variable-length (NULL-terminated) UTF-8 string datatype */
